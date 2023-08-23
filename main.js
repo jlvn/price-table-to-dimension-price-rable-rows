@@ -3,11 +3,32 @@ import Papa from 'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/+esm'
 
 const input = document.getElementById('input')
 const button = document.getElementById('button')
-const productId = document.getElementById('productId')
 
 /**
  * @typedef {{ configurableProduct: string, title: string, height: number, width: number, price: number }} DimensionPriceTableRow
  */
+
+/**
+ * @param {number} price
+ */
+const priceToPriceInCents = (price) => Math.floor(price * 100)
+
+/**
+ * @param {string} filename
+ * @throws Error
+ * @return {Promise<{id: string, name: string}>}
+ */
+const tryGetIdAndNameFromFilename = async (filename) => {
+    const filenameParts = filename.split('.')
+    if (filenameParts.length !== 3) {
+        throw new Error('invalid file name. file name should be of format `<productId>.<name>.csv` ')
+    }
+    const [id, name] = filenameParts
+    return {
+        id,
+        name
+    }
+}
 
 /**
  * @param {string} name
@@ -47,11 +68,23 @@ const priceTableToDimensionPriceRows = (productId, name, content) => {
         const header = data[0]
         const row = data[i]
         for (let j = 1; j < row.length; j++) {
-            const width = row[0]
-            const height = header[j]
-            const price = Math.floor(parseFloat(row[j].replace('€ ', '').replace(',', '.')) * 100)
+            const headerColumn = header[j]
+            const column = row[j]
+            const width = parseInt(row[0])
+            const height = parseInt(headerColumn)
+            const price = parseFloat(column.replace('€ ', '').replace(',', '.'))
 
-            rows.push({ title: `${name}-${height}-${width}`, configurableProduct: productId, height, width, price })
+            if (isNaN(width) || isNaN(height) || isNaN(price)) {
+                continue
+            }
+
+            rows.push({
+                title: `${name}-${height}-${width}`,
+                configurableProduct: productId,
+                height,
+                width,
+                price: priceToPriceInCents(price)
+            })
         }
     }
 
@@ -66,13 +99,20 @@ button.addEventListener('click', async () => {
     /** @type {File} */
     const file = input.files[0]
 
-    const name = file.name.split('.').shift()
-    const id = productId.value
-    const data = await file.text()
+    try {
+        const {
+            id,
+            name
+        } = await tryGetIdAndNameFromFilename(file.name)
 
-    const rows = priceTableToDimensionPriceRows(id, name, data)
+        const data = await file.text()
 
-    const csv = Papa.unparse(rows)
+        const rows = priceTableToDimensionPriceRows(id, name, data)
 
-    download(`${id}-${name}-rows.csv`, 'text/csv', csv)
+        const csv = Papa.unparse(rows)
+
+        download(`${id}-${name}-rows.csv`, 'text/csv', csv)
+    } catch (e) {
+        console.error(e)
+    }
 })
