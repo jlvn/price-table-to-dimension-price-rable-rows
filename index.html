@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Converter</title>
+    <style>
+        label {
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        input {
+            display: block;
+        }
+
+        div {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <label for="productId">Product ID</label>
+        <input type="text" id="productId" />
+    </div>
+    <div>
+        <label for="input">Prijstabel</label>
+        <input type="file" id="input" accept="text/csv" />
+    </div>
+    <button id="button">Convert & download</button>
+</body>
+<script type="module" src="main.js"></script>
+</html>
