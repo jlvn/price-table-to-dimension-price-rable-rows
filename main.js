@@ -1,3 +1,4 @@
+/** @type {{ parse: function(string): {data: *[]}, unparse: function(*[]): string }} */
 import Papa from 'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/+esm'
 
 const input = document.getElementById('input')
@@ -31,6 +32,7 @@ const download = (name, type, data) => {
  * @param {string} productId
  * @param {string} name
  * @param {string} content
+ * @return {DimensionPriceTableRow[]}
  */
 const priceTableToDimensionPriceRows = (productId, name, content) => {
     const {data} = Papa.parse(content)
@@ -49,7 +51,7 @@ const priceTableToDimensionPriceRows = (productId, name, content) => {
             const height = header[j]
             const price = Math.floor(parseFloat(row[j].replace('€ ', '').replace(',', '.')) * 100)
 
-            rows.push({ configurableProduct: productId, title: `${name}-${height}-${width}`, height, width, price })
+            rows.push({ title: `${name}-${height}-${width}`, configurableProduct: productId, height, width, price })
         }
     }
 
